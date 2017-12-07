@@ -1,12 +1,10 @@
-//find insert replace 
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
 #include <vector>
+#include <stdint.h>
 #include <algorithm>
-#include<stdint.h>
 using namespace std;
-#define DEFAULT 5
 class MyString{
 private:
 	char *p_str;
@@ -15,7 +13,10 @@ public:
 	void show();
 	MyString();
 	~MyString();
-	 MyString& fromSTLstring(const std::string& str);
+	MyString(const MyString &str);
+	string toSTLstring();
+	MyString& fromSTLstring(const std::string& str);
+
 	const char& at(int index)const;
 	char& at(int index);
 	vector<char>::iterator begin();
@@ -48,26 +49,12 @@ public:
 	int find_last_of(const char* _Ptr,int _Off = -1) const;
 	int find_last_of(const char* _Ptr,int _Off,int _Count) const;
 	int find_last_of(const MyString& _Str,int _Off = -1) const;
-	//insert操作
-    MyString& insert(int P0, const char* Ptr);
-    MyString& insert(int P0, const char* Ptr, int _Count);
-    MyString& insert(int P0, const MyString& Str);
-    MyString& insert(int P0, const MyString& Str, int _Off, int _Count);
-    MyString& insert(int P0, int _Count, char _Ch);
-    size_t thelength() const;
-    size_t max_size() const;
-    void push_back(char _Ch);
-    //replace操作
-    MyString& replace(int _Pos1,int _Num1,const char* _Ptr);
-    MyString& replace(int _Pos1,int _Num1,const MyString& _Str);
-    MyString& replace(int _Pos1,int _Num1,const char* _Ptr,int _Num2);
-    MyString& replace(int _Pos1,int _Num1,const MyString& _Str,int _Pos2,int _Num2);
-    MyString& replace(int _Pos1,int _Num1,int _Count,char _Ch);
-    MyString& replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const char* _Ptr);
-    MyString& replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const MyString _Str);
-    MyString& replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const char* _Ptr,int _Num2);
-    MyString& replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,int _Num2,char _Ch);
-
+	MyString& insert(int _P0,const char* _Ptr);
+	MyString& insert(int _P0,const char* _Ptr,int _Count);
+	MyString& insert(int _P0,const MyString& _Str);
+	MyString& insert(int _P0,const MyString& _Str,int _Off,int _Count);
+	MyString& insert(int _P0,int _Count, char _Ch);
+	//iterator insert(iterator _It,char _Ch = char( ));
 };
 void MyString::show()
 {
@@ -75,7 +62,6 @@ void MyString::show()
 	cout<<p_str[i];
 	cout<<endl;
 }
-
 MyString::MyString()
 {
 	p_str = NULL;
@@ -86,15 +72,23 @@ MyString::~MyString()
 	delete[] p_str;
 	length = 0;
 }
+string MyString::toSTLstring()
+{
+	string x;
+	x = p_str;
+	return x;
+}
 MyString& MyString::fromSTLstring(const std::string& str)
 {
-    length=str.size();
-    p_str=(char *)malloc(sizeof(char)*length);
-    for(int i=0;i<length;i++)
-    {
-        p_str[i]=str[i];
-    }
+	length = str.size();
+	p_str = (char *)malloc(sizeof(char)*length);
+	for (int i = 0; i<length; i++)
+	{
+		p_str[i] = str[i];
+	}
+	return *this;
 }
+
 
 const char& MyString::at(int index)const
 {
@@ -110,9 +104,7 @@ vector<char>::iterator MyString::begin()
 }
 const char* MyString::c_str()
 {
-	const char* p;
-	p=p_str;
-	return p;
+	return p_str;
 }
 size_t MyString::capacity() const
 {
@@ -151,18 +143,13 @@ vector<char>::iterator MyString::end()
 }
 vector<char>::iterator MyString::erase(vector<char>::iterator _First,vector<char>::iterator _Last)
 {
-	vector<char> tem;
-	for(int i=0;i<length;i++)
-	tem.push_back(p_str[i]);
-	vector<char>::iterator iter=tem.begin();
-	while(iter!=tem.end())
-	{
-		if(*iter==*_First&&*iter!=*_Last)
-		iter=tem.erase(iter);
-		else
-		++iter;
-	}
-	return iter;
+
+	int _Pos=_First-begin();
+	int _Count=_Last-_First+1;
+	for(int i=_Pos;i<length-_Count;i++)
+	p_str[i]=p_str[i+_Count];
+	length=length-_Count;
+	return begin()+_Pos;
 }
 MyString& MyString::erase(int _Pos,int _Count)
 {
@@ -539,231 +526,24 @@ int MyString::find_last_of(const MyString& _Str,int _Off)const
 			return flag;
 		}
 }
-//insert操作
-MyString& MyString::insert(int _P0, const char* _Ptr)
-{
-    size_t len = strlen(_Ptr);
-    p_str=(char *)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    for(int i = length-1; i>=_P0; i--)
-        p_str[i+len] = p_str[i];
-    int t = _P0;
-    for(int i = 0; i<len; i++)
-        p_str[t++] = _Ptr[i];
-    length += len;
-    return *this;
-}
-MyString& MyString::insert(int _P0, const char* _Ptr, int _Count)
-{
-    p_str = (char *)realloc(p_str,sizeof(char)*(length+_Count+DEFAULT));
-    for(int i = length-1; i>=_P0; i--)
-        p_str[i+_Count] = p_str[i];
-    int t = _P0;
-    for(int i = 0; i<_Count; i++)
-        p_str[t++] = _Ptr[i];
-    length += _Count;
-    return *this;
-}
-MyString& MyString::insert(int _P0, const MyString& _Str)
-{
-    size_t len = _Str.length;
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    for(int i = length-1; i>=_P0; i--)
-        p_str[i+len] = p_str[i];
-    int t = _P0;
-    for(int i = 0; i<len; i++)
-        p_str[t++] = _Str.p_str[i];
-    length += len;
-    return *this;
-}
-MyString& MyString::insert(int _P0, const MyString& _Str, int _Off, int _Count)
-{
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+_Count+DEFAULT));
-    for(int i = length-1; i>=_P0; i--)
-        p_str[i+_Count] = p_str[i];
-    int t = _P0;
-    for(int i = _Off; i<_Off+_Count; i++)
-        p_str[t++] = _Str.p_str[i];
-    length += _Count;
-    return *this;
-}
-MyString& MyString::insert(int _P0, int _Count, char _Ch)
-{
-    p_str = (char*)realloc(p_str, sizeof(char)*(length+_Count+DEFAULT));
-    for(int i = length-1; i>=_P0; i--)
-        p_str[i+_Count] = p_str[i];
-    int t = _P0;
-    for(int i = 0; i<_Count; i++)
-        p_str[t++] = _Ch;
-    length += _Count;
-    return *this;
-}
-size_t MyString::thelength() const
-{
-    return length;
-}
-size_t MyString::max_size() const
-{
-    return strlen(p_str);
-}
-void MyString::push_back(char _Ch)
-{
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+DEFAULT));
-    p_str[length] = _Ch;
-    length++;
-}
-MyString& MyString::replace(int _Pos1, int _Num1,const char* _Ptr)
-{
-    size_t len = strlen(_Ptr);
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    erase(_Pos1,_Num1);
-    insert(_Pos1,_Ptr);
-    length = length - _Num1 + len;
-    return *this;
-}
-MyString& MyString::replace(int _Pos1,int _Num1,const MyString& _Str)
-{
-    size_t len = _Str.length;
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    erase(_Pos1,_Num1);
-    insert(_Pos1,_Str);
-    length = length - _Num1 + len;
-    return *this;
-}
-MyString& MyString::replace(int _Pos1,int _Num1,const char* _Ptr,int _Num2)
-{
-    size_t len = _Num2;
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    erase(_Pos1,_Num1);
-    insert(_Pos1,_Ptr,_Num2);
-    length = length - _Num1 + len;
-    return *this;
-}
-MyString& MyString::replace(int _Pos1,int _Num1,const MyString& _Str,int _Pos2,int _Num2)
-{
-    size_t len = _Num2;
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    erase(_Pos1,_Num1);
-    insert(_Pos1,_Str,_Pos2,_Num2);
-    length = length - _Num1 + len;
-    return *this;
-}
-MyString& MyString::replace(int _Pos1,int _Num1,int _Count,char _Ch)
-{
-    size_t len = _Count;
-    p_str = (char*)realloc(p_str,sizeof(char)*(length+len+DEFAULT));
-    erase(_Pos1,_Num1);
-    insert(_Pos1,_Count,_Ch);
-    length = length - _Num1 + len;
-    return *this;
-}
-MyString& MyString::replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const char* _Ptr)
-{
-    vector<char>::iterator iter = begin();
-    size_t _Pos1 = 0;
-    size_t len = strlen(_Ptr);
-    while(iter != _First0)
-    {
-        iter++;
-        _Pos1++;
-    }
-    int _Count = 1;
-    while(iter != _Last0)
-    {
-        iter++;
-        _Count++;
-    }
-    erase(_Pos1,_Count);
-    insert(_Pos1,_Ptr);
-    length = length - _Count + len;
-    return *this;
-}
-MyString& MyString::replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const MyString _Str)
-{
-    vector<char>::iterator iter = begin();
-    size_t len = _Str.length;
-    size_t _Pos1 = 0;
-    while(iter != _First0)
-    {
-        iter++;
-        _Pos1++;
-    }
-    int _Count = 1;
-    while(iter != _Last0)
-    {
-        iter++;
-        _Count++;
-    }
-    erase(_Pos1,_Count);
-    insert(_Pos1,_Str);
-    length = length - _Count + len;
-    return *this;
-}
-MyString& MyString::replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,const char* _Ptr,int _Num2)
-{
-    vector<char>::iterator iter = begin();
-    size_t len = _Num2;
-    size_t _Pos1 = 0;
-    while(iter != _First0)
-    {
-        iter++;
-        _Pos1++;
-    }
-    int _Count = 1;
-    while(iter != _Last0)
-    {
-        iter++;
-        _Count++;
-    }
-    erase(_Pos1,_Count);
-    insert(_Pos1,_Ptr,_Num2);
-    length = length - _Count + len;
-    return *this;
-}
-MyString& MyString::replace(vector<char>::iterator _First0,vector<char>::iterator _Last0,int _Num2,char _Ch)
-{
-    vector<char>::iterator iter = begin();
-    size_t len = _Num2;
-    size_t _Pos1 = 0;
-    while(iter != _First0)
-    {
-        iter++;
-        _Pos1++;
-    }
-    int _Count = 1;
-    while(iter != _Last0)
-    {
-        iter++;
-        _Count++;
-    }
-    erase(_Pos1,_Count);
-    insert(_Pos1,_Num2,_Ch);
-    length = length - _Count + len;
-}
-
-
-
 int main()
 {
 	MyString s;
 	string ss;
 	cin >> ss;
 	s.fromSTLstring(ss);
-    vector<char>::iterator a;
-    a=s.begin();
-    vector<char>::iterator b;
-    b=s.end();
-    vector<char>::iterator c=s.erase(a,b);
-    s.replace(2,2,5,'c');
-    s.show();
 //	s.show();
 //	s1.fromSTLstring(s2);
-/*	vector<char>::iterator a;
-	a=s.begin();
+	vector<char>::iterator a;
+	a=s.begin()+1;
 	vector<char>::iterator b;
-	b=a+3;
+	b=s.begin()+3;
 	vector<char>::iterator c;
 	c=s.erase(a,b);
-	cout<<*c<<endl;*/
+	s.show();
+	cout<<*c;
+//	s.show();
+//	cout<<*c<<endl;
 /*	const char *p;
 	p=s.c_str();
 	cout<<p<<endl;*/
@@ -774,10 +554,10 @@ int main()
 	int x;
 	x=s.find(a,0);
 	cout<<x;*/
-	//char y[10];
-	//cin>>y;
-	//char *z=y;
-	//int k=s.find_last_not_of(z,0);
-	//cout<<k;
+/*	char y[10];
+	cin>>y;
+	char *z=y;
+	int k=s.find_last_not_of(z,0);
+	cout<<k;*/
 	return 0;
 }
